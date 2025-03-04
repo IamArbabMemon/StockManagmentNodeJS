@@ -54,7 +54,7 @@ const getUserByID = async (req, res, next) => {
         if (!user)
             throw new ErrorResponse("User not found", 400);
 
-        return res.status(201).json({ success: true, message: "User has been added fetched by id successfully ", user });
+        return res.status(201).json({ success: true, message: "User has been fetched by id successfully ", user });
 
 
     } catch (error) {
@@ -120,7 +120,23 @@ const deleteUserByID = async (req, res, next) => {
 }
 
 
+const getAllUsers = async (req, res, next) => {
+    try {
+
+        const user = await userModel.find({});
+
+        return res.status(201).json({ success: true, message: "All User has been fetched ", user });
+
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+
+
 
 export {
-    addUser, getUserByID, deleteUserByID, updateUserByID
+    addUser, getUserByID, deleteUserByID, updateUserByID, getAllUsers
 }
