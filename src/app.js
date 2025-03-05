@@ -11,7 +11,13 @@ const app = express();
 
 app.use(express.json());
 
-app.use(cors({ origin: true }));
+// note :    if this code does not work try this 
+//          origin: "http://localhost:3000", // Change this to your frontend URL
+
+
+app.use(cors({ origin: true, credentials: true }));
+
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
