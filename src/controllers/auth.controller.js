@@ -41,7 +41,7 @@ const login = async (req, res, next) => {
             maxAge: 24 * 60 * 60 * 1000 // set the cookie to expire in 1 day
         });
 
-        return res.status(200).json({ success: true, message: "Logged in successfully" });
+        return res.status(200).json({ success: true, message: "Logged in successfully", user: payload });
 
     } catch (error) {
         next(error);
