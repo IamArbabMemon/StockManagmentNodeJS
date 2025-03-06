@@ -1,6 +1,7 @@
 import { stockModel } from "../models/stocks.model.js";
 import { getNextSequence } from "../utils/counterIncrement.js";
 import { ErrorResponse } from "../utils/errorResponse.js";
+import mongoose from "mongoose";
 
 
 const addStock = async (req, res, next) => {
