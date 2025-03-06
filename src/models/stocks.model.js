@@ -43,7 +43,7 @@ const stockSchema = new mongoose.Schema({
 
     sNo: Number
 
-}, { strict: false })
+}, { timestamps: true, strict: false })
 
 stockSchema.pre("save", async function (next) {
 
