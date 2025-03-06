@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandling.middleware.js';
 import { router as userRouter } from './routes/users.routes.js';
 import { router as authRouter } from './routes/auth.routes.js';
-
+import { router as stockRouter } from '../src/routes/stocks.routes.js'
 const app = express();
 
 
@@ -25,6 +25,8 @@ app.use(cookieParser());
 
 app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/stocks', stockRouter);
+
 
 app.get('/get', (req, res) => {
     console.log("hitting get token");
