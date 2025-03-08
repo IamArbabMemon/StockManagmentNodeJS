@@ -17,6 +17,7 @@ const saleRecordSchema = new mongoose.Schema({
     orderId: {
         type: String,
         required: true,
+        unique: true,
         trim: true
     },
 

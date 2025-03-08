@@ -53,7 +53,27 @@ const checkAuthentication = async (req, res, next) => {
 
 }
 
+const CheckRequestIsFromAdmin = async (req, res, next) => {
+
+    try {
+        //check the role of requesting user
+        if (req.user.role !== "admin")
+            throw new ErrorResponse("Unauthorized access . User must be an ADMIN to access this route", 403)
+
+        // Proceed to the next middleware or route handler
+        next();
+
+    } catch (err) {
+        console.log(err.statusCode);
+        next(err);
+    }
+
+}
+
+
+
 export {
-    checkAuthentication
+    checkAuthentication,
+    CheckRequestIsFromAdmin
 }
 

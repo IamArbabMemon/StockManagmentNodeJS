@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { checkAuthentication } from "../middlewares/auth.middleware.js";
+import { checkAuthentication, CheckRequestIsFromAdmin } from "../middlewares/auth.middleware.js";
 import { addSalesRecord, deleteSalesRecordByID, getAllSalesRecord, getSalesRecordByID, updateSalesRecordByID } from "../controllers/salesRecord.controller.js";
 
 
@@ -8,15 +8,15 @@ import { addSalesRecord, deleteSalesRecordByID, getAllSalesRecord, getSalesRecor
 const router = Router();
 
 
-router.route("/").post(checkAuthentication, addSalesRecord);
+router.route("/").post(checkAuthentication, CheckRequestIsFromAdmin, addSalesRecord);
 
-router.route("/").get(checkAuthentication, getAllSalesRecord);
+router.route("/").get(checkAuthentication, CheckRequestIsFromAdmin, getAllSalesRecord);
 
-router.route("/:id").get(checkAuthentication, getSalesRecordByID);
+router.route("/:id").get(checkAuthentication, CheckRequestIsFromAdmin, getSalesRecordByID);
 
-router.route("/:id").put(checkAuthentication, updateSalesRecordByID);
+router.route("/:id").put(checkAuthentication, CheckRequestIsFromAdmin, updateSalesRecordByID);
 
-router.route("/:id").delete(checkAuthentication, deleteSalesRecordByID);
+router.route("/:id").delete(checkAuthentication, CheckRequestIsFromAdmin, deleteSalesRecordByID);
 
 
 

@@ -1,5 +1,6 @@
 import { salesRecordModel } from "../models/salesRecord.model.js";
 import mongoose from 'mongoose';
+import { ErrorResponse } from "../utils/errorResponse.js";
 
 const addSalesRecord = async (req, res, next) => {
     try {
@@ -12,9 +13,9 @@ const addSalesRecord = async (req, res, next) => {
 
 
         for (let stock of salesRecordArray) {
-            const { saleDate, username, salePrice, recievedAmount, orderId, site } = stock;
+            const { saleDate, username, sellPrice, recievedAmount, orderId, site } = stock;
 
-            if (!username || !saleDate || !salePrice || !recievedAmount || !orderId || !site) {
+            if (!username || !saleDate || !sellPrice || !recievedAmount || !orderId || !site) {
                 throw new ErrorResponse("All sales entries must have username, saleDate, salePrice, recievedAmount, orderId and site", 400);
             }
 
@@ -84,14 +85,14 @@ const updateSalesRecordByID = async (req, res, next) => {
         // Validate required fields
         if (!salesRecord.username?.trim() ||
             !salesRecord.orderId?.trim() ||
-            !salesRecord.salePrice?.trim() ||
-            !salesRecord.recievedAmount?.trim() ||
-            !salesRecord.site ||
+            !salesRecord.sellPrice ||
+            !salesRecord.recievedAmount ||
+            !salesRecord.site?.trim() ||
             !salesRecord.saleDate) {
             throw new ErrorResponse("Missing fields in salesRecord object", 400);
         }
 
-        const updatedSalesRecord = await stockModel.findByIdAndUpdate(id, salesRecord, { new: true });
+        const updatedSalesRecord = await salesRecordModel.findByIdAndUpdate(id, salesRecord, { new: true });
 
         if (!updatedSalesRecord)
             throw new ErrorResponse("salesRecord not found", 404);
@@ -110,7 +111,7 @@ const deleteSalesRecordByID = async (req, res, next) => {
 
         const id = req.params.id;
 
-        const deletedSalesRecord = await stockModel.findByIdAndDelete(id);
+        const deletedSalesRecord = await salesRecordModel.findByIdAndDelete(id);
 
         if (!deletedSalesRecord)
             throw new ErrorResponse("salesRecord not found", 404);
