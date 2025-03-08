@@ -37,6 +37,11 @@ const saleRecordSchema = new mongoose.Schema({
         required: true
     },
 
+    status: {
+        type: String,
+        default: "pending"
+    }
+
 
 
 
@@ -44,7 +49,7 @@ const saleRecordSchema = new mongoose.Schema({
 
 
 
-const salesRecordModel = mongoose.model('sales-record-model', saleRecordSchema);
+const salesRecordModel = mongoose.model('sales-records', saleRecordSchema);
 
 export {
     salesRecordModel
