@@ -1,4 +1,5 @@
-import { salesRecordModel } from "../models/salesRecord.model";
+import { salesRecordModel } from "../models/salesRecord.model.js";
+import mongoose from 'mongoose';
 
 const addSalesRecord = async (req, res, next) => {
     try {
