@@ -121,3 +121,11 @@ const deleteSalesRecordByID = async (req, res, next) => {
     }
 }
 
+
+export {
+    getAllSalesRecord,
+    addSalesRecord,
+    updateSalesRecordByID,
+    getSalesRecordByID,
+    deleteSalesRecordByID
+}
