@@ -39,6 +39,7 @@ const saleRecordSchema = new mongoose.Schema({
 
     status: {
         type: String,
+        enum: ['approved', 'pending', 'failed'],
         default: "pending"
     }
 
