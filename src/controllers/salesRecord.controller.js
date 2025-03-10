@@ -41,8 +41,8 @@ const getAllSalesRecord = async (req, res, next) => {
 
         const salesRecords = await salesRecordModel.find({});
 
-        if (!salesRecords || salesRecords.length === 0)
-            throw new ErrorResponse("sales are not fetching properly", 500);
+        // if (!salesRecords || salesRecords.length === 0)
+        //     throw new ErrorResponse("sales are not fetching properly", 500);
 
         return res.status(200).json({ success: true, message: "All sales has been fetched succesfully ", salesRecords });
 

@@ -42,7 +42,7 @@ const getAllStocks = async (req, res, next) => {
 
         const stocks = await stockModel.find({});
 
-        if (!stocks || stocks.length === 0)
+        if (!stocks)
             throw new ErrorResponse("stocks are not fetching properly", 500);
 
         return res.status(200).json({ success: true, message: "All stocks has been fetched succesfully ", stocks });
