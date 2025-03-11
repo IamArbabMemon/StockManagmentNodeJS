@@ -10,6 +10,7 @@ router.route("/").post(checkAuthentication, addStock);
 
 router.route("/").get(checkAuthentication, getAllStocks);
 
+
 router.route("/:id").get(checkAuthentication, getStockByID);
 
 router.route("/:id").put(checkAuthentication, updateStockById);

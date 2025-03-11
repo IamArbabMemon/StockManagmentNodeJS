@@ -1,6 +1,7 @@
 import { salesRecordModel } from "../models/salesRecord.model.js";
 import mongoose from 'mongoose';
 import { ErrorResponse } from "../utils/errorResponse.js";
+import { stockModel } from "../models/stocks.model.js";
 
 const addSalesRecord = async (req, res, next) => {
     try {
@@ -27,6 +28,10 @@ const addSalesRecord = async (req, res, next) => {
         if (!data || data.length === 0)
             throw new ErrorResponse("stocks are not inserted properly", 500);
 
+        const usernamesToBeDeleted = salesRecordArray.map(saleRecord => saleRecord.username);
+
+        await stockModel.deleteMany({ username: { $in: usernamesToBeDeleted } });
+
         return res.status(201).json({ success: true, message: "sales has been added succesfully " });
 
     } catch (error) {
@@ -39,7 +44,11 @@ const addSalesRecord = async (req, res, next) => {
 const getAllSalesRecord = async (req, res, next) => {
     try {
 
-        const salesRecords = await salesRecordModel.find({});
+        const { status } = req.query;
+
+        console.log(status)
+
+        const salesRecords = await salesRecordModel.find({ status });
 
         // if (!salesRecords || salesRecords.length === 0)
         //     throw new ErrorResponse("sales are not fetching properly", 500);
