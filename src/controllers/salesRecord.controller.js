@@ -13,13 +13,14 @@ const addSalesRecord = async (req, res, next) => {
         }
 
 
-        for (let stock of salesRecordArray) {
-            const { saleDate, username, sellPrice, recievedAmount, orderId, site } = stock;
+        for (let saleRecord of salesRecordArray) {
+            const { saleDate, username, sellPrice, recievedAmount, orderId, site } = saleRecord;
 
             if (!username || !saleDate || !sellPrice || !recievedAmount || !orderId || !site) {
                 throw new ErrorResponse("All sales entries must have username, saleDate, salePrice, recievedAmount, orderId and site", 400);
             }
 
+            saleRecord.member = req.user.name
 
         }
 
@@ -28,9 +29,9 @@ const addSalesRecord = async (req, res, next) => {
         if (!data || data.length === 0)
             throw new ErrorResponse("stocks are not inserted properly", 500);
 
-        const usernamesToBeDeleted = salesRecordArray.map(saleRecord => saleRecord.username);
+        const usernamesToBeUpdated = salesRecordArray.map(saleRecord => saleRecord.username);
 
-        await stockModel.deleteMany({ username: { $in: usernamesToBeDeleted } });
+        await stockModel.updateMany({ username: { $in: usernamesToBeUpdated } }, { saleStatus: "sold" });
 
         return res.status(201).json({ success: true, message: "sales has been added succesfully " });
 

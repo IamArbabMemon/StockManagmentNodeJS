@@ -42,6 +42,12 @@ const stockSchema = new mongoose.Schema({
         trim: true
     },
 
+    saleStatus: {
+        type: String,
+        default: "unsold",
+        enum: ["sold", "unsold"]
+    },
+
     sNo: Number
 
 }, { timestamps: true, strict: false })

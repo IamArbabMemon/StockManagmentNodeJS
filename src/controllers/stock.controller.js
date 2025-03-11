@@ -39,8 +39,8 @@ const addStock = async (req, res, next) => {
 
 const getAllStocks = async (req, res, next) => {
     try {
-
-        const stocks = await stockModel.find({});
+        const saleStatus = req.query;
+        const stocks = await stockModel.find({ saleStatus });
 
         if (!stocks)
             throw new ErrorResponse("stocks are not fetching properly", 500);

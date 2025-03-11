@@ -10,6 +10,10 @@ const saleRecordSchema = new mongoose.Schema({
     },
 
 
+    member: {
+        type: String
+    },
+
     saleDate: {
         type: Date,
     },
