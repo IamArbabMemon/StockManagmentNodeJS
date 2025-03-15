@@ -160,5 +160,7 @@ export {
     updateStockById,
     deleteStockById,
     getAllStocks,
-    getStockByID
+    getStockByID,
+    addBoxes,
+    getBoxes
 }
