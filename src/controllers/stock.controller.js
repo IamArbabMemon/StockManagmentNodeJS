@@ -1,3 +1,4 @@
+import { boxesModel } from "../models/boxes.model.js";
 import { stockModel } from "../models/stocks.model.js";
 import { getNextSequence } from "../utils/counterIncrement.js";
 import { ErrorResponse } from "../utils/errorResponse.js";
@@ -39,7 +40,7 @@ const addStock = async (req, res, next) => {
 
 const getAllStocks = async (req, res, next) => {
     try {
-        const saleStatus = req.query;
+        const { saleStatus } = req.query;
         const stocks = await stockModel.find({ saleStatus });
 
         if (!stocks)
@@ -119,6 +120,40 @@ const deleteStockById = async (req, res, next) => {
         next(error)
     }
 }
+
+
+const addBoxes = async (req, res, next) => {
+
+    try {
+
+        const box = req.body;
+
+        if (!box)
+            throw new ErrorResponse("box is null", 400);
+
+        const boxAdded = await boxesModel.create(box);
+
+        return res.status(200).json({ success: true, message: "box has been added", boxAdded });
+
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+const getBoxes = async (req, res, next) => {
+    try {
+
+        const boxes = await boxesModel.find({});
+
+        res.status(200).json({ success: true, message: "boxes has been fetched", boxes });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
 
 export {
     addStock,
