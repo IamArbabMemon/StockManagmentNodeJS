@@ -51,24 +51,29 @@ const getAllStocks = async (req, res, next) => {
         const stocks = await stockModel.find(filter);
 
         const data = [];
+
+
         const sumOfcpInPKR = await stockModel.aggregate([
+            { $match: filter }, // Apply filters
             {
-                {$match:filter},
                 $group: {
-                    _id: null, // No grouping, we want the total sum of all documents
+                    _id: null,
                     totalCpInPKR: { $sum: "$cpInPKR" }
                 }
             }
         ]);
 
+
         const sumOfcpInUSD = await stockModel.aggregate([
+            { $match: filter }, // Apply filters
             {
                 $group: {
-                    _id: null, // No grouping, we want the total sum of all documents
-                    totalCpInUSD: { $sum: "$cpInUSD" }
+                    _id: null,
+                    totalCpInPKR: { $sum: "$cpInUSD" }
                 }
             }
         ]);
+
 
         data.push({
             stocks,
