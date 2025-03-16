@@ -41,13 +41,45 @@ const addStock = async (req, res, next) => {
 const getAllStocks = async (req, res, next) => {
     try {
         const { saleStatus, gameName, productName } = req.query;
-        const stocks = await stockModel.find({ saleStatus, gameName, productName });
 
+        // Build dynamic filter object
+        const filter = {};
+        if (saleStatus) filter.saleStatus = saleStatus;
+        if (gameName) filter.gameName = gameName;
+        if (productName) filter.productName = productName;
+
+        const stocks = await stockModel.find(filter);
+
+        const data = [];
+        const sumOfcpInPKR = await stockModel.aggregate([
+            {
+                {$match:filter},
+                $group: {
+                    _id: null, // No grouping, we want the total sum of all documents
+                    totalCpInPKR: { $sum: "$cpInPKR" }
+                }
+            }
+        ]);
+
+        const sumOfcpInUSD = await stockModel.aggregate([
+            {
+                $group: {
+                    _id: null, // No grouping, we want the total sum of all documents
+                    totalCpInUSD: { $sum: "$cpInUSD" }
+                }
+            }
+        ]);
+
+        data.push({
+            stocks,
+            sumOfcpInPKR: sumOfcpInPKR.length > 0 ? sumOfcpInPKR[0].totalCpInPKR : 0,
+            sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0
+        });
 
         if (!stocks)
             throw new ErrorResponse("stocks are not fetching properly", 500);
 
-        return res.status(200).json({ success: true, message: "All stocks has been fetched succesfully ", stocks });
+        return res.status(200).json({ success: true, message: "All stocks has been fetched succesfully according to gameName and productName with sum ", data });
 
     } catch (error) {
         next(error)
