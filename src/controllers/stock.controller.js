@@ -50,8 +50,6 @@ const getAllStocks = async (req, res, next) => {
 
         const stocks = await stockModel.find(filter);
 
-        const data = [];
-
 
         const sumOfcpInPKR = await stockModel.aggregate([
             { $match: filter }, // Apply filters
@@ -69,17 +67,20 @@ const getAllStocks = async (req, res, next) => {
             {
                 $group: {
                     _id: null,
-                    totalCpInPKR: { $sum: "$cpInUSD" }
+                    totalCpInUSD: { $sum: "$cpInUSD" }
                 }
             }
         ]);
 
+        console.log(sumOfcpInUSD);
 
-        data.push({
+        const data = {
             stocks,
             sumOfcpInPKR: sumOfcpInPKR.length > 0 ? sumOfcpInPKR[0].totalCpInPKR : 0,
             sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0
-        });
+        };
+
+        console.log(data);
 
         if (!stocks)
             throw new ErrorResponse("stocks are not fetching properly", 500);
