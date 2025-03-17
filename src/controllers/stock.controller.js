@@ -72,7 +72,7 @@ const getAllStocks = async (req, res, next) => {
             }
         ]);
 
-        console.log(sumOfcpInUSD);
+
 
         const data = {
             stocks,
@@ -80,7 +80,7 @@ const getAllStocks = async (req, res, next) => {
             sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0
         };
 
-        console.log(data);
+
 
         if (!stocks)
             throw new ErrorResponse("stocks are not fetching properly", 500);
