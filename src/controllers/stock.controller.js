@@ -26,7 +26,7 @@ const addStock = async (req, res, next) => {
         }
 
         const data = await stockModel.insertMany(stockDataArray);
-        stockModel.updateMany({}, [{ $set: { cpInUSD: { $toDouble: "$cpInUSD" } } }])
+        //  stockModel.updateMany({}, [{ $set: { cpInUSD: { $toDouble: "$cpInUSD" } } }])
 
 
         if (!data || data.length === 0)
@@ -69,14 +69,14 @@ const getAllStocks = async (req, res, next) => {
             {
                 $group: {
                     _id: null,
-                    totalCpInUSD: { $sum: "$cpInUSD" }
+                    totalCpInUSD: { $sum: "$cpInDollar" }
                     //totalCpInUSD: { $sum: { $ifNull: ["$cpInUSD", 0] } }
 
                 }
             }
         ]);
 
-
+        //        console.log(sum)
 
         const data = {
             stocks,
@@ -84,7 +84,8 @@ const getAllStocks = async (req, res, next) => {
             sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0
         };
 
-        //console.log(sumOfcpInUSD[0].totalCpInUSD);
+
+        console.log(sumOfcpInUSD);
 
 
         if (!stocks)
