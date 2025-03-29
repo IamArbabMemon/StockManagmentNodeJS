@@ -15,7 +15,11 @@ const reserveAccountsSchema = new mongoose.Schema({
         enum: ["sold", "unsold"]
     },
 
-    website: String,
+    website: {
+        type: String,
+        required: true
+
+    },
 
     sNo: Number
 

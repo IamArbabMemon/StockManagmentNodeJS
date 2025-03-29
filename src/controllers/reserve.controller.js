@@ -87,7 +87,7 @@ const getAllStocks = async (req, res, next) => {
         if (!reserveStocks)
             throw new ErrorResponse("reserve Stocks are not fetching properly", 500);
 
-        return res.status(200).json({ success: true, message: "All stocks has been fetched succesfully according to gameName and productName with sum ", data });
+        return res.status(200).json({ success: true, message: "All reserve stocks has been fetched succesfully according to website with sum ", data });
 
     } catch (error) {
         next(error)
