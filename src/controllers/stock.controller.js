@@ -26,6 +26,8 @@ const addStock = async (req, res, next) => {
         }
 
         const data = await stockModel.insertMany(stockDataArray);
+        stockModel.updateMany({}, [{ $set: { cpInUSD: { $toDouble: "$cpInUSD" } } }])
+
 
         if (!data || data.length === 0)
             throw new ErrorResponse("stocks are not inserted properly", 500);
@@ -68,6 +70,8 @@ const getAllStocks = async (req, res, next) => {
                 $group: {
                     _id: null,
                     totalCpInUSD: { $sum: "$cpInUSD" }
+                    //totalCpInUSD: { $sum: { $ifNull: ["$cpInUSD", 0] } }
+
                 }
             }
         ]);
@@ -80,6 +84,7 @@ const getAllStocks = async (req, res, next) => {
             sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0
         };
 
+        //console.log(sumOfcpInUSD[0].totalCpInUSD);
 
 
         if (!stocks)
@@ -168,7 +173,7 @@ const addBoxes = async (req, res, next) => {
         const box = req.body;
 
         if (!box)
-            throw new ErrorResponse("box is null", 400);
+            throw new ErrorResponse("box data is epmty in request body", 400);
 
         const boxAdded = await boxesModel.create(box);
 

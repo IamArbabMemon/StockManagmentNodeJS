@@ -29,7 +29,7 @@ const stockSchema = new mongoose.Schema({
         trim: true
     },
 
-    cpInUSD: Number,
+    cpInDollar: Number,
 
     cpInPKR: {
         type: Number,
