@@ -15,15 +15,10 @@ const addStock = async (req, res, next) => {
             throw new ErrorResponse("Stocks array is required and cannot be empty", 400);
         }
 
+        for (let stock of faultyDataArray) {
 
-        // for (let stock of faultyDataArray) {
-        //     const { username, gameName, productName, cpInPKR, supplierName } = stock;
-
-        //     if (!username || !gameName || !productName || !cpInPKR || !supplierName) {
-        //         throw new ErrorResponse("All stock entries must have username, gameName, productName, cpInPKR, and supplierName", 400);
-        //     }
-
-        stock.sNo = await getNextSequence("stocks");
+            stock.sNo = await getNextSequence("stocks");
+        }
 
 
         const data = await faultyAccounts.insertMany(faultyDataArray);
