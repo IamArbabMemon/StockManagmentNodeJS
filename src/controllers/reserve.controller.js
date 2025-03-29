@@ -37,13 +37,14 @@ const addStock = async (req, res, next) => {
 
 const getAllStocks = async (req, res, next) => {
     try {
-        const { saleStatus, gameName, productName } = req.query;
+        const { saleStatus, gameName, productName, website } = req.query;
 
         // Build dynamic filter object
         const filter = {};
         if (saleStatus) filter.saleStatus = saleStatus;
         if (gameName) filter.gameName = gameName;
         if (productName) filter.productName = productName;
+        if (website) filter.website = website;
 
         const reserveStocks = await reserveAccounts.find(filter);
 
