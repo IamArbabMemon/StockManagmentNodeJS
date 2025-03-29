@@ -9,9 +9,9 @@ import mongoose from "mongoose";
 const addStock = async (req, res, next) => {
     try {
 
-        const faultyDataArray = req.body;
+        reserveDataArray = req.body;
 
-        if (!Array.isArray(faultyDataArray) || faultyDataArray.length === 0) {
+        if (!Array.isArray(reserveDataArray) || reserveDataArray.length === 0) {
             throw new ErrorResponse("Stocks array is required and cannot be empty", 400);
         }
 
@@ -23,10 +23,10 @@ const addStock = async (req, res, next) => {
         //         throw new ErrorResponse("All stock entries must have username, gameName, productName, cpInPKR, and supplierName", 400);
         //     }
 
-        stock.sNo = await getNextSequence("stocks");
+        stock.sNo = await getNextSequence("reserveAccounts");
 
 
-        const data = await faultyAccounts.insertMany(faultyDataArray);
+        const data = await faultyAccounts.insertMany(reserveDataArray);
         //  stockModel.updateMany({}, [{ $set: { cpInUSD: { $toDouble: "$cpInUSD" } } }])
 
 
@@ -51,7 +51,7 @@ const getAllStocks = async (req, res, next) => {
         if (gameName) filter.gameName = gameName;
         if (productName) filter.productName = productName;
 
-        const faultyData = await faultyAccounts.find(filter);
+        const reserveStocks = await faultyAccounts.find(filter);
 
 
         const sumOfcpInPKR = await faultyAccounts.aggregate([
@@ -80,7 +80,7 @@ const getAllStocks = async (req, res, next) => {
         //        console.log(sumfaultyData
 
         const data = {
-            faultyData,
+            reserveStocks,
             sumOfcpInPKR: sumOfcpInPKR.length > 0 ? sumOfcpInPKR[0].totalCpInPKR : 0,
             sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0
         };
@@ -89,8 +89,8 @@ const getAllStocks = async (req, res, next) => {
         console.log(sumOfcpInUSD);
 
 
-        if (!faultyData)
-            throw new ErrorResponse("stocks are not fetching properly", 500);
+        if (!reserveStocks)
+            throw new ErrorResponse("reserve Stocks are not fetching properly", 500);
 
         return res.status(200).json({ success: true, message: "All stocks has been fetched succesfully according to gameName and productName with sum ", data });
 
