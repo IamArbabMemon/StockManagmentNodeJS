@@ -9,6 +9,8 @@ const reserveAccountsSchema = new mongoose.Schema({
         type: Number,
     },
 
+
+
     saleStatus: {
         type: String,
         default: "unsold",

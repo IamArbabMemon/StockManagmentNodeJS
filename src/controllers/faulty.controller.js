@@ -22,7 +22,18 @@ const addStock = async (req, res, next) => {
 
 
         const data = await faultyAccounts.insertMany(faultyDataArray);
-        //  stockModel.updateMany({}, [{ $set: { cpInUSD: { $toDouble: "$cpInUSD" } } }])
+
+
+        const insertedData = await faultyAccounts.insertMany(faultyDataArray);
+
+        // Extract the usernames from the inserted documents
+        const usernames = insertedData.map(doc => doc.username);
+
+        // Delete documents from another collection using these usernames
+        const result = await anotherCollection.deleteMany({ username: { $in: usernames } });
+
+        console.log(`${result.deletedCount} documents deleted from another collection.`);
+
 
 
         if (!data || data.length === 0)

@@ -1,5 +1,6 @@
 import { boxesModel } from "../models/boxes.model.js";
 import { stockModel } from "../models/stocks.model.js";
+import { faultyAccounts } from "../models/faultyStocks.model.js"
 import { getNextSequence } from "../utils/counterIncrement.js";
 import { ErrorResponse } from "../utils/errorResponse.js";
 import mongoose from "mongoose";
@@ -76,12 +77,44 @@ const getAllStocks = async (req, res, next) => {
             }
         ]);
 
+        const faultyCount = await faultyAccounts.aggregate([
+            {
+                $match: { filter, faultyStatus: true }
+            },
+            { $count: "faultyCount" }
+        ]);
+
+
         //        console.log(sum)
+
+        const result = await reserveAccounts.aggregate([
+            {
+                $match: {
+                    gameName: "valorant",
+                    productName: "rfr"
+                }
+            },
+            {
+                $group: {
+                    _id: "$website",
+                    count: { $sum: 1 } // Count the number of matching documents per website
+                }
+            },
+            {
+                $sort: { count: -1 } // Sort by count in descending order (optional)
+            }
+        ]);
+
+        console.log(result);
+
+
 
         const data = {
             stocks,
             sumOfcpInPKR: sumOfcpInPKR.length > 0 ? sumOfcpInPKR[0].totalCpInPKR : 0,
-            sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0
+            sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0,
+            faultyCount: faultyCount.length > 0 ? faultyCount[0].faultyCount : 0,
+            websiteCount: result
         };
 
 
