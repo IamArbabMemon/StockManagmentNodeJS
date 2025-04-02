@@ -1,3 +1,4 @@
+import { reserveAccounts } from "../models/reserve.model.js";
 import { boxesModel } from "../models/boxes.model.js";
 import { stockModel } from "../models/stocks.model.js";
 import { faultyAccounts } from "../models/faultyStocks.model.js"
@@ -90,8 +91,8 @@ const getAllStocks = async (req, res, next) => {
         const result = await reserveAccounts.aggregate([
             {
                 $match: {
-                    gameName: "valorant",
-                    productName: "rfr"
+                    gameName: gameName,
+                    productName: productName
                 }
             },
             {
@@ -127,7 +128,9 @@ const getAllStocks = async (req, res, next) => {
         return res.status(200).json({ success: true, message: "All stocks has been fetched succesfully according to gameName and productName with sum ", data });
 
     } catch (error) {
+        console.log(error);
         next(error)
+        
     }
 }
 
