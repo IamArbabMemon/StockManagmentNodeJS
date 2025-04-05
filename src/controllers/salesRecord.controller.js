@@ -133,11 +133,39 @@ const deleteSalesRecordByID = async (req, res, next) => {
     }
 }
 
+const replaceAccounts = async (req, res, next) => {
+    try {
+
+        const {username,rowId} = req.body;
+
+        const previousAccount = await salesRecordModel.findById(rowId);
+        if (!previousAccount)
+            throw new ErrorResponse("salesRecord not found", 404);
+
+        const newAccountFromAvailableStocks = await stockModel.findOne({ username: username, saleStatus: "unsold" }); 
+        
+        if (!newAccountFromAvailableStocks)
+            throw new ErrorResponse("No available stocks found for this username", 404);
+
+        await salesRecordModel.updateOne({ _id: rowId }, { $set: newAccountFromAvailableStocks });
+
+        await stockModel.updateOne({ _id: newAccountFromAvailableStocks._id }, { $set: { saleStatus: "sold" } });
+
+        await salesRecordModel.updateOne({_id:rowId}, {$set:{replaced:newAccountFromAvailableStocks._id}});
+        
+        return res.status(200).json({ success: true, message: "salesRecord has been replaced succesfully ", newAccountFromAvailableStocks });
+
+    } catch (error) {
+        next(error)
+    }
+}
+
 
 export {
     getAllSalesRecord,
     addSalesRecord,
     updateSalesRecordByID,
     getSalesRecordByID,
-    deleteSalesRecordByID
+    deleteSalesRecordByID,
+    replaceAccounts
 }

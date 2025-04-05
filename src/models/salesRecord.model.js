@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { getNextSequence } from "../utils/counterIncrement.js";
+import { stockModel, stockSchema } from "./stocks.model.js";
 
 const saleRecordSchema = new mongoose.Schema({
     username: {
@@ -9,7 +10,7 @@ const saleRecordSchema = new mongoose.Schema({
         unique: true
     },
 
-
+    replaced:{ type: mongoose.Schema.Types.ObjectId, ref: 'Stock' },
     member: {
         type: String
     },

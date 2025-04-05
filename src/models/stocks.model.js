@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { getNextSequence } from "../utils/counterIncrement.js";
 
-const stockSchema = new mongoose.Schema({
+export const stockSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
