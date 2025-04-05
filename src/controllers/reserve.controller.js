@@ -90,6 +90,7 @@ const getAllStocks = async (req, res, next) => {
       sumOfcpInPKR: sumOfcpInPKR.length > 0 ? sumOfcpInPKR[0].totalCpInPKR : 0,
       sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0,
     };
+    console.log(data);
 
     console.log(sumOfcpInUSD);
 

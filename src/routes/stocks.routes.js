@@ -5,11 +5,11 @@ import { addBoxes, addStock, deleteStockById, getAllStocks, getBoxes, getStockBy
 
 const router = Router();
 
-router.get("/boxes", checkAuthentication, getBoxes);
+router.get("/boxes",checkAuthentication,getBoxes);
 
 router.route("/").post(checkAuthentication, addStock);
 
-router.route("/").get(checkAuthentication, getAllStocks);
+router.route("/").get( checkAuthentication,getAllStocks);
 
 
 router.route("/:id").get(checkAuthentication, getStockByID);

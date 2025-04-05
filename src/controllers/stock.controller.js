@@ -106,21 +106,46 @@ const getAllStocks = async (req, res, next) => {
             }
         ]);
 
-        console.log(result);
+        console.log("web: ",result);
 
+        const sumOfFaultycpInPKR = await faultyAccounts.aggregate([
+            { $match: filter }, // Apply filters
+            {
+              $group: {
+                _id: null,
+                totalCpInPKR: { $sum: "$cpInPKR" },
+              },
+            },
+          ]);
+      
+          const sumOfFaultycpInUSD = await faultyAccounts.aggregate([
+            { $match: filter }, // Apply filters
+            {
+              $group: {
+                _id: null,
+                totalCpInUSD: { $sum: "$cpInDollar" },
+                //totalCpInUSD: { $sum: { $ifNull: ["$cpInUSD", 0] } }
+              },
+            },
+          ]);
 
+          const totalOfReserved = await reserveAccounts.countDocuments(filter);
+          const totalStock = totalOfReserved + stocks.length;
+        
 
         const data = {
             stocks,
             sumOfcpInPKR: sumOfcpInPKR.length > 0 ? sumOfcpInPKR[0].totalCpInPKR : 0,
             sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0,
             faultyCount: faultyCount.length > 0 ? faultyCount[0].faultyCount : 0,
-            websiteCount: result
+            sumOfFaultycpInPKR: sumOfFaultycpInPKR.length > 0 ? sumOfFaultycpInPKR[0].totalCpInPKR : 0,
+            sumOfFaultycpInUSD: sumOfFaultycpInUSD.length > 0 ? sumOfFaultycpInUSD[0].totalCpInUSD : 0,
+            websiteCount: result,
+            totalStock
         };
 
-
+        console.log(result)
         console.log(sumOfcpInUSD);
-
 
         if (!stocks)
             throw new ErrorResponse("stocks are not fetching properly", 500);
@@ -130,7 +155,7 @@ const getAllStocks = async (req, res, next) => {
     } catch (error) {
         console.log(error);
         next(error)
-        
+
     }
 }
 
