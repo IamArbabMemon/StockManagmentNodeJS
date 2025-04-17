@@ -47,9 +47,12 @@ const getAllSalesRecord = async (req, res, next) => {
 
         const { status } = req.query;
 
-        console.log(status)
+        let filter = {};
 
-        const salesRecords = await salesRecordModel.find({ status });
+        if (status)
+            filter = { status: status };
+            
+        const salesRecords = await salesRecordModel.find(filter);
 
         // if (!salesRecords || salesRecords.length === 0)
         //     throw new ErrorResponse("sales are not fetching properly", 500);
@@ -133,30 +136,83 @@ const deleteSalesRecordByID = async (req, res, next) => {
     }
 }
 
+// const replaceAccounts = async (req, res, next) => {
+//     try {
+
+//         const {username,rowId} = req.body;
+//         console.log(req.body);
+        
+
+//         const previousAccount = await salesRecordModel.findById(rowId);
+//         if (!previousAccount)
+//             throw new ErrorResponse("salesRecord not found", 404);
+
+//         const newAccountFromAvailableStocks = await stockModel.findOne({ username: username, saleStatus: "unsold" }); 
+        
+//         if (!newAccountFromAvailableStocks)
+//             throw new ErrorResponse("No available stocks found for this username", 404);
+
+//         await salesRecordModel.updateOne({ _id: rowId }, { $set: newAccountFromAvailableStocks });
+
+//         await stockModel.updateOne({ _id: newAccountFromAvailableStocks._id }, { $set: { saleStatus: "sold" } });
+
+//         await salesRecordModel.updateOne({_id:rowId}, {$set:{replaced:newAccountFromAvailableStocks._id}});
+        
+//         return res.status(200).json({ success: true, message: "salesRecord has been replaced succesfully ", newAccountFromAvailableStocks });
+
+//     } catch (error) {
+//         next(error)
+//     }
+// }
+
 const replaceAccounts = async (req, res, next) => {
     try {
-
-        const {username,rowId} = req.body;
-
+        const {username, rowId} = req.body;
+        
         const previousAccount = await salesRecordModel.findById(rowId);
         if (!previousAccount)
             throw new ErrorResponse("salesRecord not found", 404);
 
-        const newAccountFromAvailableStocks = await stockModel.findOne({ username: username, saleStatus: "unsold" }); 
+        const newAccountFromAvailableStocks = await stockModel.findOne({ 
+            username: username, 
+            saleStatus: "unsold" 
+        }); 
         
         if (!newAccountFromAvailableStocks)
             throw new ErrorResponse("No available stocks found for this username", 404);
 
-        await salesRecordModel.updateOne({ _id: rowId }, { $set: newAccountFromAvailableStocks });
+        // Create a new object without the _id field
+        const newAccountData = {...newAccountFromAvailableStocks.toObject()};
+        delete newAccountData._id;
+        delete newAccountData.saleStatus; // Remove saleStatus since it's specific to stockModel
 
-        await stockModel.updateOne({ _id: newAccountFromAvailableStocks._id }, { $set: { saleStatus: "sold" } });
+        // Update the sales record with the new account data (excluding _id)
+        await salesRecordModel.updateOne(
+            { _id: rowId }, 
+            { $set: newAccountData }
+        );
 
-        await salesRecordModel.updateOne({_id:rowId}, {$set:{replaced:newAccountFromAvailableStocks._id}});
+        // Mark the stock as sold
+        await stockModel.updateOne(
+            { _id: newAccountFromAvailableStocks._id }, 
+            { $set: { saleStatus: "sold" } }
+        );
+
+        // Record the replacement
+        await salesRecordModel.updateOne(
+            {_id: rowId}, 
+            {$set: {replaced: newAccountFromAvailableStocks._id}}
+        );
         
-        return res.status(200).json({ success: true, message: "salesRecord has been replaced succesfully ", newAccountFromAvailableStocks });
+        return res.status(200).json({ 
+            success: true, 
+            message: "salesRecord has been replaced successfully", 
+            newAccountFromAvailableStocks ,
+            previousAccount
+        });
 
     } catch (error) {
-        next(error)
+        next(error);
     }
 }
 

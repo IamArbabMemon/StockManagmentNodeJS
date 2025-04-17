@@ -9,6 +9,7 @@ const addStock = async (req, res, next) => {
   try {
     const faultyDataArray = req.body;
 
+    console.log("faultyDataArray ", faultyDataArray);
     if (!Array.isArray(faultyDataArray) || faultyDataArray.length === 0) {
       throw new ErrorResponse(
         "Stocks array is required and cannot be empty",
@@ -22,12 +23,12 @@ const addStock = async (req, res, next) => {
 
     const data = await faultyAccounts.insertMany(faultyDataArray);
 
-    const insertedData = await faultyAccounts.insertMany(faultyDataArray);
+    //const insertedData = await faultyAccounts.insertMany(faultyDataArray);
 
     // Extract the usernames from the inserted documents
     const usernames = faultyDataArray.map((doc) => doc.username || doc.userName);
 
-    console.log("usernames ", insertedData);
+    console.log("usernames ", data);
     // Delete documents from another collection using these usernames
     const result = await stockModel.deleteMany({
       username: { $in: usernames },
@@ -47,6 +48,7 @@ const addStock = async (req, res, next) => {
         message: "faulty account has been added succesfully ",
       });
   } catch (error) {
+   console.log(error)
     next(error);
   }
 };
