@@ -78,13 +78,20 @@ const getAllStocks = async (req, res, next) => {
             }
         ]);
 
+        // const faultyCount = await faultyAccounts.aggregate([
+        //     {
+        //         $match: { filter, faultyStatus: true }
+        //     },
+        //     { $count: "faultyCount" }
+        // ]);
         const faultyCount = await faultyAccounts.aggregate([
             {
-                $match: { filter, faultyStatus: true }
+                $match: { ...filter, faultyStatus: true }
             },
             { $count: "faultyCount" }
         ]);
 
+        console.log("raw faulty count ", faultyCount)
 
         //        console.log(sum)
 
@@ -106,32 +113,32 @@ const getAllStocks = async (req, res, next) => {
             }
         ]);
 
-        console.log("web: ",result);
+        console.log("web: ", result);
 
         const sumOfFaultycpInPKR = await faultyAccounts.aggregate([
             { $match: filter }, // Apply filters
             {
-              $group: {
-                _id: null,
-                totalCpInPKR: { $sum: "$cpInPKR" },
-              },
+                $group: {
+                    _id: null,
+                    totalCpInPKR: { $sum: "$cpInPKR" },
+                },
             },
-          ]);
-      
-          const sumOfFaultycpInUSD = await faultyAccounts.aggregate([
+        ]);
+
+        const sumOfFaultycpInUSD = await faultyAccounts.aggregate([
             { $match: filter }, // Apply filters
             {
-              $group: {
-                _id: null,
-                totalCpInUSD: { $sum: "$cpInDollar" },
-                //totalCpInUSD: { $sum: { $ifNull: ["$cpInUSD", 0] } }
-              },
+                $group: {
+                    _id: null,
+                    totalCpInUSD: { $sum: "$cpInDollar" },
+                    //totalCpInUSD: { $sum: { $ifNull: ["$cpInUSD", 0] } }
+                },
             },
-          ]);
+        ]);
 
-          const totalOfReserved = await reserveAccounts.countDocuments(filter);
-          const totalStock = totalOfReserved + stocks.length;
-        
+        const totalOfReserved = await reserveAccounts.countDocuments(filter);
+        const totalStock = totalOfReserved + stocks.length;
+
 
         const data = {
             stocks,
@@ -145,7 +152,7 @@ const getAllStocks = async (req, res, next) => {
         };
 
         console.log(result)
-        console.log(sumOfcpInUSD);
+        console.log("faulty count from data ", data.faultyCount);
 
         if (!stocks)
             throw new ErrorResponse("stocks are not fetching properly", 500);
