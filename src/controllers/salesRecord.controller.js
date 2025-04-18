@@ -29,6 +29,7 @@ const addSalesRecord = async (req, res, next) => {
 
         const usernames = salesRecordArray.map((doc) => doc.username || doc.userName);
 
+        let result;
 
         switch (modelName) {
             case "reserve":
