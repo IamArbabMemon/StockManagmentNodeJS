@@ -5,7 +5,7 @@ import { stockModel } from "../models/stocks.model.js";
 
 const addSalesRecord = async (req, res, next) => {
     try {
-
+        const modelName = req.query.modelName;
         const salesRecordArray = req.body;
 
         if (!Array.isArray(salesRecordArray) || salesRecordArray.length === 0) {
@@ -25,6 +25,23 @@ const addSalesRecord = async (req, res, next) => {
         }
 
         const data = await salesRecordModel.insertMany(salesRecordArray);
+
+        const usernames = salesRecordArray.map((doc) => doc.username || doc.userName);
+
+
+        switch (modelName) {
+            case "reserve":
+                result = await reserveAccounts.deleteMany({
+                    username: { $in: usernames },
+                });
+
+                break;
+
+            default:
+                console.log("no model selected natural flow will be executed as all the accounts are marked as sold inside stock model");
+                break;
+        }
+
 
         if (!data || data.length === 0)
             throw new ErrorResponse("stocks are not inserted properly", 500);
@@ -51,7 +68,7 @@ const getAllSalesRecord = async (req, res, next) => {
 
         if (status)
             filter = { status: status };
-            
+
         const salesRecords = await salesRecordModel.find(filter);
 
         // if (!salesRecords || salesRecords.length === 0)
@@ -141,14 +158,14 @@ const deleteSalesRecordByID = async (req, res, next) => {
 
 //         const {username,rowId} = req.body;
 //         console.log(req.body);
-        
+
 
 //         const previousAccount = await salesRecordModel.findById(rowId);
 //         if (!previousAccount)
 //             throw new ErrorResponse("salesRecord not found", 404);
 
 //         const newAccountFromAvailableStocks = await stockModel.findOne({ username: username, saleStatus: "unsold" }); 
-        
+
 //         if (!newAccountFromAvailableStocks)
 //             throw new ErrorResponse("No available stocks found for this username", 404);
 
@@ -157,7 +174,7 @@ const deleteSalesRecordByID = async (req, res, next) => {
 //         await stockModel.updateOne({ _id: newAccountFromAvailableStocks._id }, { $set: { saleStatus: "sold" } });
 
 //         await salesRecordModel.updateOne({_id:rowId}, {$set:{replaced:newAccountFromAvailableStocks._id}});
-        
+
 //         return res.status(200).json({ success: true, message: "salesRecord has been replaced succesfully ", newAccountFromAvailableStocks });
 
 //     } catch (error) {
@@ -167,47 +184,47 @@ const deleteSalesRecordByID = async (req, res, next) => {
 
 const replaceAccounts = async (req, res, next) => {
     try {
-        const {username, rowId} = req.body;
-        
+        const { username, rowId } = req.body;
+
         const previousAccount = await salesRecordModel.findById(rowId);
         if (!previousAccount)
             throw new ErrorResponse("salesRecord not found", 404);
 
-        const newAccountFromAvailableStocks = await stockModel.findOne({ 
-            username: username, 
-            saleStatus: "unsold" 
-        }); 
-        
+        const newAccountFromAvailableStocks = await stockModel.findOne({
+            username: username,
+            saleStatus: "unsold"
+        });
+
         if (!newAccountFromAvailableStocks)
             throw new ErrorResponse("No available stocks found for this username", 404);
 
         // Create a new object without the _id field
-        const newAccountData = {...newAccountFromAvailableStocks.toObject()};
+        const newAccountData = { ...newAccountFromAvailableStocks.toObject() };
         delete newAccountData._id;
         delete newAccountData.saleStatus; // Remove saleStatus since it's specific to stockModel
 
         // Update the sales record with the new account data (excluding _id)
         await salesRecordModel.updateOne(
-            { _id: rowId }, 
+            { _id: rowId },
             { $set: newAccountData }
         );
 
         // Mark the stock as sold
         await stockModel.updateOne(
-            { _id: newAccountFromAvailableStocks._id }, 
+            { _id: newAccountFromAvailableStocks._id },
             { $set: { saleStatus: "sold" } }
         );
 
         // Record the replacement
         await salesRecordModel.updateOne(
-            {_id: rowId}, 
-            {$set: {replaced: newAccountFromAvailableStocks._id}}
+            { _id: rowId },
+            { $set: { replaced: newAccountFromAvailableStocks._id } }
         );
-        
-        return res.status(200).json({ 
-            success: true, 
-            message: "salesRecord has been replaced successfully", 
-            newAccountFromAvailableStocks ,
+
+        return res.status(200).json({
+            success: true,
+            message: "salesRecord has been replaced successfully",
+            newAccountFromAvailableStocks,
             previousAccount
         });
 

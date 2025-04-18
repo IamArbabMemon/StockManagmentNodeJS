@@ -4,9 +4,12 @@ import { stockModel } from "../models/stocks.model.js";
 import { getNextSequence } from "../utils/counterIncrement.js";
 import { ErrorResponse } from "../utils/errorResponse.js";
 import mongoose from "mongoose";
+import { reserveAccounts } from "../models/reserve.model.js";
+import { salesRecordModel } from "../models/salesRecord.model.js";
 
 const addStock = async (req, res, next) => {
   try {
+    const modelName = req.query.modelName;
     const faultyDataArray = req.body;
 
     console.log("faultyDataArray ", faultyDataArray);
@@ -30,9 +33,34 @@ const addStock = async (req, res, next) => {
 
     console.log("usernames ", data);
     // Delete documents from another collection using these usernames
-    const result = await stockModel.deleteMany({
-      username: { $in: usernames },
-    });
+    let result;
+    switch (modelName) {
+      case "reserve":
+        result = await reserveAccounts.deleteMany({
+          username: { $in: usernames },
+        });
+
+        break;
+
+      case "stocks":
+        result = await stockModel.deleteMany({
+          username: { $in: usernames },
+        });
+
+        break;
+
+      case "sales":
+        result = await salesRecordModel.deleteMany({
+          username: { $in: usernames },
+        });
+
+        break;
+
+      default:
+        throw new ErrorResponse("Unknown model selected")
+    }
+
+
 
     console.log(
       `${result.deletedCount} documents deleted from another collection.`
@@ -48,7 +76,7 @@ const addStock = async (req, res, next) => {
         message: "faulty account has been added succesfully ",
       });
   } catch (error) {
-   console.log(error)
+    console.log(error)
     next(error);
   }
 };
