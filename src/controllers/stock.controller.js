@@ -57,9 +57,9 @@ const getAllStocks = async (req, res, next) => {
         if (!stocks)
             throw new ErrorResponse("stocks are not fetching properly", 500);
 
-        if (stocks.length === 0) {
-            return res.status(200).json({ success: true, message: "Stocks table has no data " });
-        }
+        // if (stocks.length === 0) {
+        //     return res.status(200).json({ success: true, message: "Stocks table has no data " });
+        // }
 
         const sumOfcpInPKR = await stockModel.aggregate([
             { $match: filter }, // Apply filters
