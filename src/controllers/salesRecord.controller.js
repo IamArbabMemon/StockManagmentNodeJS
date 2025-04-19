@@ -73,8 +73,9 @@ const getAllSalesRecord = async (req, res, next) => {
 
         const salesRecords = await salesRecordModel.find(filter);
 
-        // if (!salesRecords || salesRecords.length === 0)
-        //     throw new ErrorResponse("sales are not fetching properly", 500);
+        if (salesRecords.length === 0) {
+            return res.status(200).json({ success: true, message: "Sales record table has no data" });
+        }
 
         return res.status(200).json({ success: true, message: "All sales has been fetched succesfully ", salesRecords });
 

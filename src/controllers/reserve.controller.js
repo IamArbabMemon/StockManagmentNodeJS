@@ -62,6 +62,21 @@ const getAllStocks = async (req, res, next) => {
 
     const reserveStocks = await reserveAccounts.find(filter);
 
+    if (!reserveStocks)
+      throw new ErrorResponse("reserve Stocks are not fetching properly", 500);
+
+    if (reserveStocks.length === 0) {
+
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message:
+            "Reserve table has no data"
+        });
+
+    }
+
     const sumOfcpInPKR = await reserveAccounts.aggregate([
       { $match: filter }, // Apply filters
       {
@@ -94,8 +109,7 @@ const getAllStocks = async (req, res, next) => {
 
     console.log(sumOfcpInUSD);
 
-    if (!reserveStocks)
-      throw new ErrorResponse("reserve Stocks are not fetching properly", 500);
+
 
     return res
       .status(200)

@@ -54,6 +54,12 @@ const getAllStocks = async (req, res, next) => {
 
         const stocks = await stockModel.find(filter);
 
+        if (!stocks)
+            throw new ErrorResponse("stocks are not fetching properly", 500);
+
+        if (stocks.length === 0) {
+            return res.status(200).json({ success: true, message: "Stocks table has no data " });
+        }
 
         const sumOfcpInPKR = await stockModel.aggregate([
             { $match: filter }, // Apply filters
@@ -154,8 +160,6 @@ const getAllStocks = async (req, res, next) => {
         console.log(result)
         console.log("faulty count from data ", data.faultyCount);
 
-        if (!stocks)
-            throw new ErrorResponse("stocks are not fetching properly", 500);
 
         return res.status(200).json({ success: true, message: "All stocks has been fetched succesfully according to gameName and productName with sum ", data });
 

@@ -125,6 +125,10 @@ const getAllUsers = async (req, res, next) => {
 
         const user = await userModel.find({});
 
+        if (user.length === 0) {
+            return res.status(201).json({ success: true, message: "User table no data  " });
+        }
+
         return res.status(201).json({ success: true, message: "All User has been fetched ", user });
 
 

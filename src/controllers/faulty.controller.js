@@ -116,6 +116,11 @@ const getAllStocks = async (req, res, next) => {
 
     //        console.log(sumfaultyData
 
+
+    if (!faultyData)
+      throw new ErrorResponse("stocks are not fetching properly", 500);
+
+
     const data = {
       faultyData,
       sumOfcpInPKR: sumOfcpInPKR.length > 0 ? sumOfcpInPKR[0].totalCpInPKR : 0,
@@ -124,8 +129,15 @@ const getAllStocks = async (req, res, next) => {
 
     console.log(sumOfcpInUSD);
 
-    if (!faultyData)
-      throw new ErrorResponse("stocks are not fetching properly", 500);
+    if (faultyData.length === 0) {
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message:
+            "faulty table is empty"
+        });
+    }
 
     return res
       .status(200)
