@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { ErrorResponse } from "../utils/errorResponse.js";
 import { stockModel } from "../models/stocks.model.js";
 import { reserveAccounts } from "../models/reserve.model.js";
+import { faultyAccounts } from "../models/faultyStocks.model.js";
 
 const addSalesRecord = async (req, res, next) => {
     try {
@@ -106,11 +107,11 @@ const getSalesRecordByID = async (req, res, next) => {
 
 const updateSalesRecordByID = async (req, res, next) => {
     try {
-
-        const id = req.params.id;
+         const id = req.params.id;
+        
         const salesRecord = req.body;
-
-
+        console.log("req params ", id);
+        let updatedSalesRecord;
         if (!mongoose.Types.ObjectId.isValid(id)) {
             throw new ErrorResponse("Invalid salesRecord ID", 400);
         }
@@ -125,14 +126,26 @@ const updateSalesRecordByID = async (req, res, next) => {
             throw new ErrorResponse("Missing fields in salesRecord object", 400);
         }
 
-        const updatedSalesRecord = await salesRecordModel.findByIdAndUpdate(id, salesRecord, { new: true });
-
-        if (!updatedSalesRecord)
+        const getRecord = await salesRecordModel.findById(id); 
+        if (!getRecord)
             throw new ErrorResponse("salesRecord not found", 404);
+
+        if(salesRecord.status === "rejected"){
+            delete salesRecord.id;
+            await faultyAccounts.create({...salesRecord,reason:"reason required"});
+           await salesRecordModel.findByIdAndDelete(id); 
+        }else{
+         updatedSalesRecord = await salesRecordModel.findByIdAndUpdate(id, salesRecord, { new: true });
+         if (!updatedSalesRecord)
+            throw new ErrorResponse("salesRecord not found", 404);
+        }
+
+                
 
         return res.status(200).json({ success: true, message: "salesRecord has been updated succesfully ", updatedSalesRecord });
 
     } catch (error) {
+        console.log(error.message)
         next(error)
     }
 }
