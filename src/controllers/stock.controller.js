@@ -271,6 +271,31 @@ const getBoxes = async (req, res, next) => {
     }
 }
 
+const deleteBox = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            throw new ErrorResponse("Box ID is required in request parameters", 400);
+        }
+
+        const deletedBox = await boxesModel.findByIdAndDelete(id);
+
+        if (!deletedBox) {
+            throw new ErrorResponse("Box not found with the provided ID", 404);
+        }
+
+        return res.status(200).json({ 
+            success: true, 
+            message: "Box has been deleted successfully", 
+            deletedBox 
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
 
 export {
     addStock,
@@ -279,5 +304,6 @@ export {
     getAllStocks,
     getStockByID,
     addBoxes,
-    getBoxes
+    getBoxes, 
+    deleteBox
 }

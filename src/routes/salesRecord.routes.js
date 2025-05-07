@@ -1,24 +1,27 @@
 import { Router } from "express";
 
 import { checkAuthentication, CheckRequestIsFromAdmin } from "../middlewares/auth.middleware.js";
-import { addSalesRecord, deleteSalesRecordByID, getAllSalesRecord, getSalesRecordByID, updateSalesRecordByID ,replaceAccounts} from "../controllers/salesRecord.controller.js";
+import { addSalesRecord, deleteSalesRecordByID, getAllSalesRecord, getSalesRecordByID, updateSalesRecordByID ,replaceAccounts, refundAccount} from "../controllers/salesRecord.controller.js";
 
 
 
 const router = Router();
 
 
-router.route("/").post(checkAuthentication, CheckRequestIsFromAdmin, addSalesRecord);
+router.route("/refund").post(checkAuthentication, refundAccount);
 
-router.route("/").get(checkAuthentication, CheckRequestIsFromAdmin, getAllSalesRecord);
+router.route("/").post(checkAuthentication, addSalesRecord);
 
-router.route("/:id").get(checkAuthentication, CheckRequestIsFromAdmin, getSalesRecordByID);
+router.route("/").get(checkAuthentication, getAllSalesRecord);
 
-router.route("/:id").put(checkAuthentication, CheckRequestIsFromAdmin, updateSalesRecordByID);
+router.route("/:id").get(checkAuthentication, getSalesRecordByID);
 
-router.route("/:id").delete(checkAuthentication, CheckRequestIsFromAdmin, deleteSalesRecordByID);
+router.route("/:id").put(checkAuthentication, updateSalesRecordByID);
 
-router.route("/replace").post(checkAuthentication, CheckRequestIsFromAdmin, replaceAccounts);
+router.route("/:id").delete(checkAuthentication, deleteSalesRecordByID);
+
+router.route("/replace").post(checkAuthentication, replaceAccounts);
+
 
 
 

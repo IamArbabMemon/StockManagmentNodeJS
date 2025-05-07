@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { checkAuthentication } from "../middlewares/auth.middleware.js";
-import { addBoxes, addStock, deleteStockById, getAllStocks, getBoxes, getStockByID, updateStockById } from "../controllers/stock.controller.js";
+import { addBoxes, addStock, deleteStockById, getAllStocks, getBoxes, getStockByID, updateStockById, deleteBox } from "../controllers/stock.controller.js";
 
 const router = Router();
 
@@ -22,6 +22,7 @@ router.route("/:id").delete(checkAuthentication, deleteStockById);
 
 router.post("/boxes", checkAuthentication, addBoxes);
 
+router.delete("/boxes/:id", checkAuthentication, deleteBox);
 
 
 export { router };

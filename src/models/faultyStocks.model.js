@@ -7,7 +7,7 @@ const faultyAccountsSchema = new mongoose.Schema({
 
     cpInPKR: {
         type: Number,
-        required: true
+        required: false
     },
 
     saleStatus: {

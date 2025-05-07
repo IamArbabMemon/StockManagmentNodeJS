@@ -14,13 +14,26 @@ const addSalesRecord = async (req, res, next) => {
             throw new ErrorResponse("Stocks array is required and cannot be empty", 400);
         }
 
+        // logic to check if the orderId already exists in the salesRecordModel
+
+        // const orderIds = salesRecordArray.map((saleRecord) => saleRecord.orderId);
+
+        // const isAnyOrderIdExist = await salesRecordModel.findOne({
+        //     orderId: { $in: orderIds }
+        //   });
+
+        //   if (isAnyOrderIdExist) {
+        //     throw new ErrorResponse(`${isAnyOrderIdExist?.orderId} this order id already exists:`, 400);
+        //   }
+
+
 
         for (let saleRecord of salesRecordArray) {
             const { saleDate, username, sellPrice, recievedAmount, orderId, site } = saleRecord;
 
-            if (!username || !saleDate || !sellPrice || !recievedAmount || !orderId || !site) {
-                throw new ErrorResponse("All sales entries must have username, saleDate, salePrice, recievedAmount, orderId and site", 400);
-            }
+            // if (!username || !saleDate || !sellPrice || !recievedAmount || !orderId || !site) {
+            //     throw new ErrorResponse("All sales entries must have username, saleDate, salePrice, recievedAmount, orderId and site", 400);
+            // }
 
             saleRecord.member = req.user.name
 
@@ -66,13 +79,21 @@ const getAllSalesRecord = async (req, res, next) => {
     try {
 
         const { status } = req.query;
+        let salesRecords;
 
-        let filter = {};
+        if (status) {
+            salesRecords = await salesRecordModel.find({
+                status: status
+            });
 
-        if (status)
-            filter = { status: status };
-
-        const salesRecords = await salesRecordModel.find(filter);
+        } else {
+            salesRecords = await salesRecordModel.find({
+                $or: [
+                    { status: "approved" },
+                    { status: "refunded" }
+                ]
+            });
+        }
 
         if (salesRecords.length === 0) {
             return res.status(200).json({ success: true, message: "Sales record table has no data" });
@@ -107,8 +128,9 @@ const getSalesRecordByID = async (req, res, next) => {
 
 const updateSalesRecordByID = async (req, res, next) => {
     try {
-         const id = req.params.id;
-        
+        const id = req.params.id;
+        console.log(req.body);
+
         const salesRecord = req.body;
         console.log("req params ", id);
         let updatedSalesRecord;
@@ -117,30 +139,30 @@ const updateSalesRecordByID = async (req, res, next) => {
         }
 
         // Validate required fields
-        if (!salesRecord.username?.trim() ||
-            !salesRecord.orderId?.trim() ||
-            !salesRecord.sellPrice ||
-            !salesRecord.recievedAmount ||
-            !salesRecord.site?.trim() ||
-            !salesRecord.saleDate) {
-            throw new ErrorResponse("Missing fields in salesRecord object", 400);
-        }
+        // if (!salesRecord.username?.trim() ||
+        //     !salesRecord.orderId?.trim() ||
+        //     !salesRecord.sellPrice ||
+        //     !salesRecord.recievedAmount ||
+        //     !salesRecord.site?.trim() ||
+        //     !salesRecord.saleDate) {
+        //     throw new ErrorResponse("Missing fields in salesRecord object", 400);
+        // }
 
-        const getRecord = await salesRecordModel.findById(id); 
+        const getRecord = await salesRecordModel.findById(id);
         if (!getRecord)
             throw new ErrorResponse("salesRecord not found", 404);
 
-        if(salesRecord.status === "rejected"){
+        if (salesRecord.status === "rejected") {
             delete salesRecord.id;
-            await faultyAccounts.create({...salesRecord,reason:"reason required"});
-           await salesRecordModel.findByIdAndDelete(id); 
-        }else{
-         updatedSalesRecord = await salesRecordModel.findByIdAndUpdate(id, salesRecord, { new: true });
-         if (!updatedSalesRecord)
-            throw new ErrorResponse("salesRecord not found", 404);
+            await faultyAccounts.create({ ...salesRecord, reason: "reason required" });
+            await salesRecordModel.findByIdAndDelete(id);
+        } else {
+            updatedSalesRecord = await salesRecordModel.findByIdAndUpdate(id, salesRecord, { new: true });
+            if (!updatedSalesRecord)
+                throw new ErrorResponse("salesRecord not found", 404);
         }
 
-                
+
 
         return res.status(200).json({ success: true, message: "salesRecord has been updated succesfully ", updatedSalesRecord });
 
@@ -217,26 +239,37 @@ const replaceAccounts = async (req, res, next) => {
         // Create a new object without the _id field
         const newAccountData = { ...newAccountFromAvailableStocks.toObject() };
         delete newAccountData._id;
-        delete newAccountData.saleStatus; // Remove saleStatus since it's specific to stockModel
+        delete newAccountData.saleStatus;// Remove saleStatus since it's specific to stockModel
 
-        // Update the sales record with the new account data (excluding _id)
-        await salesRecordModel.updateOne(
-            { _id: rowId },
-            { $set: newAccountData }
+
+        const previusAccountToBeSend = { ...previousAccount.toObject(), reason: "sales to faulty" };
+        delete previusAccountToBeSend._id;
+        const faultyAdded = await faultyAccounts.create(
+            previusAccountToBeSend // Use toObject() to get a plain JS object
         );
 
+        if (!faultyAdded)
+            throw new ErrorResponse("Failed to add to faulty accounts", 500);
+
+        console.log("faulty added ", faultyAdded);
+
+       
         // Mark the stock as sold
         await stockModel.updateOne(
             { _id: newAccountFromAvailableStocks._id },
             { $set: { saleStatus: "sold" } }
         );
 
-        // Record the replacement
-        await salesRecordModel.updateOne(
-            { _id: rowId },
-            { $set: { replaced: newAccountFromAvailableStocks._id } }
-        );
 
+        await salesRecordModel.deleteOne({ _id: rowId });
+
+        //newAccountFromAvailableStocks.status = "sold"; // Update the saleStatus in the new account object
+        console.log("order ID from prevoius ============ ",previousAccount.orderId)
+        const newAccountTobeAddedInSalesRecordAgain = { ...newAccountFromAvailableStocks.toObject(), orderId:previousAccount.orderId,saleDate: previousAccount.saleDate,status:'approved' , site: previousAccount.site, recievedAmount: previousAccount.recievedAmount, sellPrice: previousAccount.sellPrice };
+       
+        console.log(newAccountTobeAddedInSalesRecordAgain);
+
+        await salesRecordModel.create(newAccountTobeAddedInSalesRecordAgain);
         return res.status(200).json({
             success: true,
             message: "salesRecord has been replaced successfully",
@@ -245,10 +278,37 @@ const replaceAccounts = async (req, res, next) => {
         });
 
     } catch (error) {
+        console.log(error.message)
         next(error);
     }
 }
 
+
+const refundAccount = async(req, res, next) => {
+    try{
+
+        const data = req.body;
+
+        const faultyEntry = await faultyAccounts.create(data);
+        if(!faultyEntry)
+            throw new ErrorResponse("Failed to add to faulty accounts", 500);
+
+        await salesRecordModel.updateOne(
+            {_id:data?._id},
+            { $set: { status: "refunded" }
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Account has been refunded successfully",
+            faultyEntry
+        });
+
+
+    }catch(error){
+        console.log(error.message)
+        next(error)
+    }
+}    
 
 export {
     getAllSalesRecord,
@@ -256,5 +316,6 @@ export {
     updateSalesRecordByID,
     getSalesRecordByID,
     deleteSalesRecordByID,
-    replaceAccounts
+    replaceAccounts,
+    refundAccount
 }

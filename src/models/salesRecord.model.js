@@ -10,7 +10,7 @@ const saleRecordSchema = new mongoose.Schema({
         unique: true
     },
 
-    replaced:{ type: mongoose.Schema.Types.ObjectId, ref: 'Stock' },
+    //replaced:{ type: mongoose.Schema.Types.ObjectId, ref: 'Stock' },
     member: {
         type: String
     },
@@ -21,9 +21,9 @@ const saleRecordSchema = new mongoose.Schema({
 
     orderId: {
         type: String,
-        required: true,
+        trim: true,
         unique: true,
-        trim: true
+        sparse: true 
     },
 
     site: {
@@ -44,7 +44,7 @@ const saleRecordSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ['approved', 'pending', 'failed'],
+        //enum: ['approved', 'pending', 'failed'],
         default: "pending"
     }
 
