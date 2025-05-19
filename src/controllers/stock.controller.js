@@ -242,13 +242,32 @@ const deleteStockById = async (req, res, next) => {
 const addBoxes = async (req, res, next) => {
 
     try {
-
+        let boxAdded ;
         const box = req.body;
-
+        console.log("box data ", box);
         if (!box)
             throw new ErrorResponse("box data is epmty in request body", 400);
 
-        const boxAdded = await boxesModel.create(box);
+
+        const boxFound = await boxesModel.findOne({
+            gameName: box.gameName,
+            productName: box.productName,
+        });
+
+        console.log(boxFound);
+
+
+        if (boxFound)
+            throw new ErrorResponse("A box with this game name and product name already exists.", 400);
+      
+    //     if (boxFound.gameName.toLowerCase() === box.gameName.toLowerCase() || boxFound.productName.toLowerCase() === box.productName.toLowerCase()) {
+    //  
+        
+    // }
+    // }else{
+    //     
+    // }
+    boxAdded = await boxesModel.create(box);
 
         return res.status(200).json({ success: true, message: "box has been added", boxAdded });
 
@@ -263,6 +282,7 @@ const getBoxes = async (req, res, next) => {
     try {
 
         const boxes = await boxesModel.find({});
+
 
         res.status(200).json({ success: true, message: "boxes has been fetched", boxes });
 
