@@ -222,7 +222,7 @@ const deleteSalesRecordByID = async (req, res, next) => {
 
 const replaceAccounts = async (req, res, next) => {
     try {
-        const { username, rowId } = req.body;
+        const { username, rowId,reason } = req.body;
 
         const previousAccount = await salesRecordModel.findById(rowId);
         if (!previousAccount)
@@ -242,7 +242,7 @@ const replaceAccounts = async (req, res, next) => {
         delete newAccountData.saleStatus;// Remove saleStatus since it's specific to stockModel
 
 
-        const previusAccountToBeSend = { ...previousAccount.toObject(), reason: "sales to faulty" };
+        const previusAccountToBeSend = { ...previousAccount.toObject(), reason: reason};
         delete previusAccountToBeSend._id;
         const faultyAdded = await faultyAccounts.create(
             previusAccountToBeSend // Use toObject() to get a plain JS object
