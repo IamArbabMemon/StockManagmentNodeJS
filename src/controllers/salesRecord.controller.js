@@ -64,7 +64,10 @@ const addSalesRecord = async (req, res, next) => {
 
         const usernamesToBeUpdated = salesRecordArray.map(saleRecord => saleRecord.username);
 
-        await stockModel.updateMany({ username: { $in: usernamesToBeUpdated } }, { saleStatus: "sold" });
+       // await stockModel.updateMany({ username: { $in: usernamesToBeUpdated } }, { saleStatus: "sold" });
+       await stockModel.deleteMany({
+        username: { $in: usernames },
+    });
 
         return res.status(201).json({ success: true, message: "sales has been added succesfully " });
 
