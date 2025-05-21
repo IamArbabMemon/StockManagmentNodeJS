@@ -170,6 +170,42 @@ const getAllStocks = async (req, res, next) => {
     }
 }
 
+
+
+const getAllStocksDataForExcel = async (req, res, next) => {
+    try {
+        const { saleStatus, gameName, productName } = req.query;
+
+        // Build dynamic filter object
+        const filter = {};
+        if (saleStatus) filter.saleStatus = saleStatus;
+        if (gameName) filter.gameName = gameName;
+        if (productName) filter.productName = productName;
+
+        const stocks = await stockModel.find(filter);
+        const reserve = await reserveAccounts.find(filter);
+        const faulty = await faultyAccounts.find(filter);
+        
+
+        const data = {
+            stocksAccounts:stocks,
+            reserveAccounts:reserve,
+            faultyAccounts: faulty,
+        };
+
+
+        return res.status(200).json({ success: true, message: "Stocks fetched successfully by game and product name for Excel.", data });
+
+    } catch (error) {
+        console.log(error);
+        next(error)
+
+    }
+}
+
+
+
+
 const getStockByID = async (req, res, next) => {
     try {
 
@@ -325,5 +361,6 @@ export {
     getStockByID,
     addBoxes,
     getBoxes, 
-    deleteBox
+    deleteBox,
+    getAllStocksDataForExcel
 }

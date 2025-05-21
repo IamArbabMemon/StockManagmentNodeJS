@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { checkAuthentication } from "../middlewares/auth.middleware.js";
-import { addBoxes, addStock, deleteStockById, getAllStocks, getBoxes, getStockByID, updateStockById, deleteBox } from "../controllers/stock.controller.js";
+import { addBoxes, addStock, deleteStockById, getAllStocks, getBoxes, getStockByID, updateStockById, deleteBox, getAllStocksDataForExcel } from "../controllers/stock.controller.js";
 
 const router = Router();
 
@@ -11,6 +11,7 @@ router.route("/").post(checkAuthentication, addStock);
 
 router.route("/").get( checkAuthentication,getAllStocks);
 
+router.get("/excelSheetData", checkAuthentication, getAllStocksDataForExcel);
 
 router.route("/:id").get(checkAuthentication, getStockByID);
 
@@ -23,6 +24,7 @@ router.route("/:id").delete(checkAuthentication, deleteStockById);
 router.post("/boxes", checkAuthentication, addBoxes);
 
 router.delete("/boxes/:id", checkAuthentication, deleteBox);
+
 
 
 export { router };
