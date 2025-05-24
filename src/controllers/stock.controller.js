@@ -5,12 +5,15 @@ import { faultyAccounts } from "../models/faultyStocks.model.js"
 import { getNextSequence } from "../utils/counterIncrement.js";
 import { ErrorResponse } from "../utils/errorResponse.js";
 import mongoose from "mongoose";
+import { closingAccounts } from "../models/closing.model.js";
 
 
 const addStock = async (req, res, next) => {
     try {
 
+        const model = req.query.modelName;
         const stockDataArray = req.body;
+        console.log("stock data ", stockDataArray);
 
         if (!Array.isArray(stockDataArray) || stockDataArray.length === 0) {
             throw new ErrorResponse("Stocks array is required and cannot be empty", 400);
@@ -29,6 +32,16 @@ const addStock = async (req, res, next) => {
 
         const data = await stockModel.insertMany(stockDataArray);
         //  stockModel.updateMany({}, [{ $set: { cpInUSD: { $toDouble: "$cpInUSD" } } }])
+        
+        if(model === "faulty") {
+            const usernames = stockDataArray.map((doc) => doc.username || doc.userName);
+            console.log("usernames ", usernames);
+            // Delete documents from another collection using these usernames
+            const result = await faultyAccounts.deleteMany({
+                username: { $in: usernames },
+            });
+        }
+
 
 
         if (!data || data.length === 0)
@@ -170,6 +183,127 @@ const getAllStocks = async (req, res, next) => {
     }
 }
 
+const getBoxDataForSheet = async (req, res, next) => {
+    try {
+       // const stocks = await stockModel.find({});
+        const gameProductCombos = await stockModel.distinct("gameName");
+
+        const resultData = [];
+
+        for (const gameName of gameProductCombos) {
+            const productNames = await stockModel.distinct("productName", { gameName });
+
+            for (const productName of productNames) {
+                const filter = { gameName, productName };
+
+                const stocks = await stockModel.find(filter);
+
+                const sumOfcpInPKR = await stockModel.aggregate([
+                    { $match: filter },
+                    {
+                        $group: {
+                            _id: null,
+                            totalCpInPKR: { $sum: "$cpInPKR" }
+                        }
+                    }
+                ]);
+
+                const sumOfcpInUSD = await stockModel.aggregate([
+                    { $match: filter },
+                    {
+                        $group: {
+                            _id: null,
+                            totalCpInUSD: { $sum: "$cpInDollar" }
+                        }
+                    }
+                ]);
+
+                const faultyCount = await faultyAccounts.aggregate([
+                    {
+                        $match: { ...filter, faultyStatus: true }
+                    },
+                    { $count: "faultyCount" }
+                ]);
+
+                const sumOfFaultycpInPKR = await faultyAccounts.aggregate([
+                    { $match: filter },
+                    {
+                        $group: {
+                            _id: null,
+                            totalCpInPKR: { $sum: "$cpInPKR" },
+                        },
+                    },
+                ]);
+
+                const sumOfFaultycpInUSD = await faultyAccounts.aggregate([
+                    { $match: filter },
+                    {
+                        $group: {
+                            _id: null,
+                            totalCpInUSD: { $sum: "$cpInDollar" },
+                        },
+                    },
+                ]);
+
+                const websiteCount = await reserveAccounts.aggregate([
+                    { $match: filter },
+                    {
+                        $group: {
+                            _id: "$website",
+                            count: { $sum: 1 }
+                        }
+                    },
+                    { $sort: { count: -1 } }
+                ]);
+
+                const totalOfReserved = await reserveAccounts.countDocuments(filter);
+                const totalStock = totalOfReserved + stocks.length;
+                const avaliableStocks =  stocks.length;
+
+                resultData.push({
+                    gameName,
+                    productName,
+                    avaliableStocks,
+                    sumOfcpInPKR: sumOfcpInPKR.length > 0 ? sumOfcpInPKR[0].totalCpInPKR : 0,
+                    sumOfcpInUSD: sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0,
+                    faultyCount: faultyCount.length > 0 ? faultyCount[0].faultyCount : 0,
+                    sumOfFaultycpInPKR: sumOfFaultycpInPKR.length > 0 ? sumOfFaultycpInPKR[0].totalCpInPKR : 0,
+                    sumOfFaultycpInUSD: sumOfFaultycpInUSD.length > 0 ? sumOfFaultycpInUSD[0].totalCpInUSD : 0,
+                    websiteCount,
+                    totalStock
+                });
+            }
+        }
+
+        if (resultData.length === 0) {
+            throw new ErrorResponse("No box data found to generate report.",404);
+        }
+
+
+        // Group by gameName
+        const groupedResult = {};
+        for (const item of resultData) {
+            const { gameName } = item;
+            if (!groupedResult[gameName]) {
+                groupedResult[gameName] = [];
+            }
+            groupedResult[gameName].push(item);
+        }
+
+        const finalData = Object.values(groupedResult);
+
+        
+        return res.status(200).json({
+            success: true,
+            message: "Grouped stocks fetched successfully",
+            data: finalData
+        });
+
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }   
+};
 
 
 const getAllStocksDataForExcel = async (req, res, next) => {
@@ -185,13 +319,19 @@ const getAllStocksDataForExcel = async (req, res, next) => {
         const stocks = await stockModel.find(filter);
         const reserve = await reserveAccounts.find(filter);
         const faulty = await faultyAccounts.find(filter);
+        const closing = await closingAccounts.find(filter);
+
         
 
         const data = {
             stocksAccounts:stocks,
             reserveAccounts:reserve,
             faultyAccounts: faulty,
+            closingAccounts: closing
         };
+
+        if (!data || (data.stocksAccounts.length === 0 && data.reserveAccounts.length === 0 && data.faultyAccounts.length === 0 && data.closingAccounts.length === 0))
+            throw new ErrorResponse("Unable to generate the report. No stock data was found.", 404);
 
 
         return res.status(200).json({ success: true, message: "Stocks fetched successfully by game and product name for Excel.", data });
@@ -281,6 +421,9 @@ const addBoxes = async (req, res, next) => {
         let boxAdded ;
         const box = req.body;
         console.log("box data ", box);
+        
+        
+        
         if (!box)
             throw new ErrorResponse("box data is epmty in request body", 400);
 
@@ -309,6 +452,7 @@ const addBoxes = async (req, res, next) => {
 
 
     } catch (error) {
+        console.log("error in adding box ", error);
         next(error)
     }
 }
@@ -362,5 +506,6 @@ export {
     addBoxes,
     getBoxes, 
     deleteBox,
-    getAllStocksDataForExcel
+    getAllStocksDataForExcel,
+    getBoxDataForSheet
 }
