@@ -305,6 +305,439 @@ const getBoxDataForSheet = async (req, res, next) => {
     }   
 };
 
+//first version
+// const getSupplierTotalData = async (req, res, next) => {
+//     try {
+//         const supplierNames = await stockModel.distinct("supplierName");
+
+//         const resultData = [];
+
+//         for (const supplierName of supplierNames) {
+//             const gameNames = await stockModel.distinct("gameName", { supplierName });
+
+//             for (const gameName of gameNames) {
+//                 const productNames = await stockModel.distinct("productName", {
+//                     supplierName,
+//                     gameName,
+//                 });
+
+//                 for (const productName of productNames) {
+//                     const filter = { supplierName, gameName, productName };
+
+//                     const stocks = await stockModel.find(filter);
+
+//                     const sumOfcpInPKR = await stockModel.aggregate([
+//                         { $match: filter },
+//                         {
+//                             $group: {
+//                                 _id: null,
+//                                 totalCpInPKR: { $sum: "$cpInPKR" },
+//                             },
+//                         },
+//                     ]);
+
+//                     const sumOfcpInUSD = await stockModel.aggregate([
+//                         { $match: filter },
+//                         {
+//                             $group: {
+//                                 _id: null,
+//                                 totalCpInUSD: { $sum: "$cpInDollar" },
+//                             },
+//                         },
+//                     ]);
+
+//                     const faultyCount = await faultyAccounts.aggregate([
+//                         {
+//                             $match: { ...filter, faultyStatus: true },
+//                         },
+//                         { $count: "faultyCount" },
+//                     ]);
+
+//                     const sumOfFaultycpInPKR = await faultyAccounts.aggregate([
+//                         { $match: filter },
+//                         {
+//                             $group: {
+//                                 _id: null,
+//                                 totalCpInPKR: { $sum: "$cpInPKR" },
+//                             },
+//                         },
+//                     ]);
+
+//                     const sumOfFaultycpInUSD = await faultyAccounts.aggregate([
+//                         { $match: filter },
+//                         {
+//                             $group: {
+//                                 _id: null,
+//                                 totalCpInUSD: { $sum: "$cpInDollar" },
+//                             },
+//                         },
+//                     ]);
+
+//                     const websiteCount = await reserveAccounts.aggregate([
+//                         { $match: filter },
+//                         {
+//                             $group: {
+//                                 _id: "$website",
+//                                 count: { $sum: 1 },
+//                             },
+//                         },
+//                         { $sort: { count: -1 } },
+//                     ]);
+
+//                     const totalOfReserved = await reserveAccounts.countDocuments(filter);
+//                     const totalStock = totalOfReserved + stocks.length;
+//                     const avaliableStocks = stocks.length;
+
+//                     resultData.push({
+//                         supplierName,
+//                         gameName,
+//                         productName,
+//                         avaliableStocks,
+//                         sumOfcpInPKR:
+//                             sumOfcpInPKR.length > 0 ? sumOfcpInPKR[0].totalCpInPKR : 0,
+//                         sumOfcpInUSD:
+//                             sumOfcpInUSD.length > 0 ? sumOfcpInUSD[0].totalCpInUSD : 0,
+//                         faultyCount:
+//                             faultyCount.length > 0 ? faultyCount[0].faultyCount : 0,
+//                         sumOfFaultycpInPKR:
+//                             sumOfFaultycpInPKR.length > 0
+//                                 ? sumOfFaultycpInPKR[0].totalCpInPKR
+//                                 : 0,
+//                         sumOfFaultycpInUSD:
+//                             sumOfFaultycpInUSD.length > 0
+//                                 ? sumOfFaultycpInUSD[0].totalCpInUSD
+//                                 : 0,
+//                         websiteCount,
+//                         totalStock,
+//                     });
+//                 }
+//             }
+//         }
+
+//         if (resultData.length === 0) {
+//             throw new ErrorResponse("No box data found to generate report.", 404);
+//         }
+
+//         // Group by supplierName > gameName
+//         const groupedResult = {};
+//         for (const item of resultData) {
+//             const { supplierName, gameName } = item;
+//             if (!groupedResult[supplierName]) {
+//                 groupedResult[supplierName] = {};
+//             }
+//             if (!groupedResult[supplierName][gameName]) {
+//                 groupedResult[supplierName][gameName] = [];
+//             }
+//             groupedResult[supplierName][gameName].push(item);
+//         }
+
+//         return res.status(200).json({
+//             success: true,
+//             message: "Grouped stocks fetched successfully",
+//             data: groupedResult,
+//         });
+
+//     } catch (error) {
+//         console.log(error);
+//         next(error);
+//     }
+// };
+
+
+// const getSupplierTotalData = async (req, res, next) => {
+//     try {
+//         // Step 1: Get all distinct supplier names from all collections
+//         const [stockSuppliers, faultySuppliers, reserveSuppliers] = await Promise.all([
+//             stockModel.distinct("supplierName"),
+//             faultyAccounts.distinct("supplierName"),
+//             reserveAccounts.distinct("supplierName"),
+//         ]);
+
+//         const supplierNamesSet = new Set([
+//             ...stockSuppliers,
+//             ...faultySuppliers,
+//             ...reserveSuppliers,
+//         ]);
+//         const supplierNames = Array.from(supplierNamesSet);
+
+//         const resultData = [];
+
+//         // Step 2: Loop through all suppliers
+//         for (const supplierName of supplierNames) {
+//             // Get all gameNames from all collections for this supplier
+//             const [gameNamesFromStock, gameNamesFromFaulty, gameNamesFromReserve] = await Promise.all([
+//                 stockModel.distinct("gameName", { supplierName }),
+//                 faultyAccounts.distinct("gameName", { supplierName }),
+//                 reserveAccounts.distinct("gameName", { supplierName }),
+//             ]);
+
+//             const gameNamesSet = new Set([
+//                 ...gameNamesFromStock,
+//                 ...gameNamesFromFaulty,
+//                 ...gameNamesFromReserve,
+//             ]);
+//             const gameNames = Array.from(gameNamesSet);
+
+//             // Step 3: Loop through all games
+//             for (const gameName of gameNames) {
+//                 // Get all productNames from all collections for this supplier & game
+//                 const [productNamesFromStock, productNamesFromFaulty, productNamesFromReserve] = await Promise.all([
+//                     stockModel.distinct("productName", { supplierName, gameName }),
+//                     faultyAccounts.distinct("productName", { supplierName, gameName }),
+//                     reserveAccounts.distinct("productName", { supplierName, gameName }),
+//                 ]);
+
+//                 const productNamesSet = new Set([
+//                     ...productNamesFromStock,
+//                     ...productNamesFromFaulty,
+//                     ...productNamesFromReserve,
+//                 ]);
+//                 const productNames = Array.from(productNamesSet);
+
+//                 // Step 4: Loop through all products
+//                 for (const productName of productNames) {
+//                     const filter = { supplierName, gameName, productName };
+//                     const faultyFilter = { ...filter, faultyStatus: true };
+
+//                     const [
+//                         avaliableStocks,
+//                         sumOfcpInPKR,
+//                         sumOfcpInUSD,
+//                         faultyCountResult,
+//                         sumOfFaultycpInPKR,
+//                         sumOfFaultycpInUSD,
+//                         totalOfReserved,
+//                     ] = await Promise.all([
+//                         stockModel.countDocuments(filter),
+
+//                         stockModel.aggregate([
+//                             { $match: filter },
+//                             { $group: { _id: null, total: { $sum: "$cpInPKR" } } },
+//                         ]),
+
+//                         stockModel.aggregate([
+//                             { $match: filter },
+//                             { $group: { _id: null, total: { $sum: "$cpInDollar" } } },
+//                         ]),
+
+//                         faultyAccounts.aggregate([
+//                             { $match: faultyFilter },
+//                             { $count: "faultyCount" },
+//                         ]),
+
+//                         faultyAccounts.aggregate([
+//                             { $match: faultyFilter },
+//                             { $group: { _id: null, total: { $sum: "$cpInPKR" } } },
+//                         ]),
+
+//                         faultyAccounts.aggregate([
+//                             { $match: faultyFilter },
+//                             { $group: { _id: null, total: { $sum: "$cpInDollar" } } },
+//                         ]),
+
+//                         reserveAccounts.countDocuments(filter),
+//                     ]);
+
+//                     const totalStock = totalOfReserved + avaliableStocks;
+
+//                     resultData.push({
+//                         supplierName,
+//                         gameName,
+//                         productName,
+//                         avaliableStocks,
+//                         sumOfcpInPKR: sumOfcpInPKR[0]?.total || 0,
+//                         sumOfcpInUSD: sumOfcpInUSD[0]?.total || 0,
+//                         faultyCount: faultyCountResult[0]?.faultyCount || 0,
+//                         sumOfFaultycpInPKR: sumOfFaultycpInPKR[0]?.total || 0,
+//                         sumOfFaultycpInUSD: sumOfFaultycpInUSD[0]?.total || 0,
+//                         totalStock,
+//                     });
+//                 }
+//             }
+//         }
+
+//         if (resultData.length === 0) {
+//             throw new ErrorResponse("No box data found to generate report.", 404);
+//         }
+
+//         // Step 5: Group by supplierName > gameName
+//         const groupedResult = {};
+//         for (const item of resultData) {
+//             const { supplierName, gameName } = item;
+//             if (!groupedResult[supplierName]) {
+//                 groupedResult[supplierName] = {};
+//             }
+//             if (!groupedResult[supplierName][gameName]) {
+//                 groupedResult[supplierName][gameName] = [];
+//             }
+//             groupedResult[supplierName][gameName].push(item);
+//         }
+
+//         return res.status(200).json({
+//             success: true,
+//             message: "Grouped stocks fetched successfully",
+//             data: groupedResult,
+//         });
+
+//     } catch (error) {
+//         console.error(error);
+//         next(error);
+//     }
+// };
+
+const getSupplierTotalData = async (req, res, next) => {
+    try {
+        // Step 1: Get all distinct supplier names from all collections
+        const [stockSuppliers, faultySuppliers, reserveSuppliers] = await Promise.all([
+            stockModel.distinct("supplierName"),
+            faultyAccounts.distinct("supplierName"),
+            reserveAccounts.distinct("supplierName"),
+        ]);
+
+        const supplierNamesSet = new Set([
+            ...stockSuppliers,
+            ...faultySuppliers,
+            ...reserveSuppliers,
+        ]);
+        const supplierNames = Array.from(supplierNamesSet);
+
+        const resultData = [];
+
+        // Step 2: Loop through all suppliers
+        for (const supplierName of supplierNames) {
+            const [gameNamesFromStock, gameNamesFromFaulty, gameNamesFromReserve] = await Promise.all([
+                stockModel.distinct("gameName", { supplierName }),
+                faultyAccounts.distinct("gameName", { supplierName }),
+                reserveAccounts.distinct("gameName", { supplierName }),
+            ]);
+
+            const gameNamesSet = new Set([
+                ...gameNamesFromStock,
+                ...gameNamesFromFaulty,
+                ...gameNamesFromReserve,
+            ]);
+            const gameNames = Array.from(gameNamesSet);
+
+            // Step 3: Loop through all games
+            for (const gameName of gameNames) {
+                const [productNamesFromStock, productNamesFromFaulty, productNamesFromReserve] = await Promise.all([
+                    stockModel.distinct("productName", { supplierName, gameName }),
+                    faultyAccounts.distinct("productName", { supplierName, gameName }),
+                    reserveAccounts.distinct("productName", { supplierName, gameName }),
+                ]);
+
+                const productNamesSet = new Set([
+                    ...productNamesFromStock,
+                    ...productNamesFromFaulty,
+                    ...productNamesFromReserve,
+                ]);
+                const productNames = Array.from(productNamesSet);
+
+                // Step 4: Loop through all products
+                for (const productName of productNames) {
+                    const filter = { supplierName, gameName, productName };
+                    const faultyFilter = { ...filter, faultyStatus: true };
+
+                    const [
+                        avaliableStocks,
+                        stockCpInPKR,
+                        stockCpInUSD,
+                        faultyCountResult,
+                        faultyCpInPKR,
+                        faultyCpInUSD,
+                        totalOfReserved,
+                        reserveCpInPKR,
+                        reserveCpInUSD
+                    ] = await Promise.all([
+                        stockModel.countDocuments(filter),
+
+                        stockModel.aggregate([
+                            { $match: filter },
+                            { $group: { _id: null, total: { $sum: "$cpInPKR" } } },
+                        ]),
+
+                        stockModel.aggregate([
+                            { $match: filter },
+                            { $group: { _id: null, total: { $sum: "$cpInDollar" } } },
+                        ]),
+
+                        faultyAccounts.aggregate([
+                            { $match: faultyFilter },
+                            { $count: "faultyCount" },
+                        ]),
+
+                        faultyAccounts.aggregate([
+                            { $match: faultyFilter },
+                            { $group: { _id: null, total: { $sum: "$cpInPKR" } } },
+                        ]),
+
+                        faultyAccounts.aggregate([
+                            { $match: faultyFilter },
+                            { $group: { _id: null, total: { $sum: "$cpInDollar" } } },
+                        ]),
+
+                        reserveAccounts.countDocuments(filter),
+
+                        reserveAccounts.aggregate([
+                            { $match: filter },
+                            { $group: { _id: null, total: { $sum: "$cpInPKR" } } },
+                        ]),
+
+                        reserveAccounts.aggregate([
+                            { $match: filter },
+                            { $group: { _id: null, total: { $sum: "$cpInDollar" } } },
+                        ]),
+                    ]);
+
+                    const totalCpInPKR = (stockCpInPKR[0]?.total || 0) + (reserveCpInPKR[0]?.total || 0);
+                    const totalCpInUSD = (stockCpInUSD[0]?.total || 0) + (reserveCpInUSD[0]?.total || 0);
+                    const totalStock = totalOfReserved + avaliableStocks;
+
+                    resultData.push({
+                        supplierName,
+                        gameName,
+                        productName,
+                        avaliableStocks,
+                        sumOfcpInPKR: totalCpInPKR,
+                        sumOfcpInUSD: totalCpInUSD,
+                        faultyCount: faultyCountResult[0]?.faultyCount || 0,
+                        sumOfFaultycpInPKR: faultyCpInPKR[0]?.total || 0,
+                        sumOfFaultycpInUSD: faultyCpInUSD[0]?.total || 0,
+                        totalStock,
+                    });
+                }
+            }
+        }
+
+        if (resultData.length === 0) {
+            throw new ErrorResponse("No box data found to generate report.", 404);
+        }
+
+        // Step 5: Group by supplierName > gameName
+        const groupedResult = {};
+        for (const item of resultData) {
+            const { supplierName, gameName } = item;
+            if (!groupedResult[supplierName]) {
+                groupedResult[supplierName] = {};
+            }
+            if (!groupedResult[supplierName][gameName]) {
+                groupedResult[supplierName][gameName] = [];
+            }
+            groupedResult[supplierName][gameName].push(item);
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Grouped stocks fetched successfully",
+            data: groupedResult,
+        });
+
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
 
 const getAllStocksDataForExcel = async (req, res, next) => {
     try {
@@ -507,5 +940,6 @@ export {
     getBoxes, 
     deleteBox,
     getAllStocksDataForExcel,
-    getBoxDataForSheet
+    getBoxDataForSheet,
+    getSupplierTotalData
 }
