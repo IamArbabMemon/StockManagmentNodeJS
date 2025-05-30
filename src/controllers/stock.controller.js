@@ -710,7 +710,7 @@ const getSupplierTotalData = async (req, res, next) => {
         }
 
         if (resultData.length === 0) {
-            throw new ErrorResponse("No box data found to generate report.", 404);
+            throw new ErrorResponse("No data found", 404);
         }
 
         // Step 5: Group by supplierName > gameName
