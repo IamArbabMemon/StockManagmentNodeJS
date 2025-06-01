@@ -10,6 +10,7 @@ import { router as salesRecordRouter } from './routes/salesRecord.routes.js';
 import { router as faultyRouter } from "./routes/faulty.routes.js"
 import { router as reserveRouter } from "./routes/reserve.routes.js"
 import{ router as closingRouter } from "./routes/closing.routes.js" 
+import{ router as graphRoute } from "./routes/graph.route.js" 
 const app = express();
 
 
@@ -34,6 +35,7 @@ app.use('/api/salesRecords', salesRecordRouter);
 app.use('/api/faulty', faultyRouter);
 app.use('/api/reserve', reserveRouter);
 app.use('/api/closing', closingRouter);
+app.use('/api/graph', graphRoute);
 
 
 
