@@ -58,7 +58,7 @@ stockSchema.pre("save", async function (next) {
     next();
 });
 
-
+//stockSchema.index({ supplierName: 1, gameName: 1, productName: 1 });
 const stockModel = mongoose.model('Stock', stockSchema);
 
 export {

@@ -54,7 +54,6 @@ const saleRecordSchema = new mongoose.Schema({
 }, { timestamps: true, strict: false })
 
 
-
 const salesRecordModel = mongoose.model('sales-records', saleRecordSchema);
 
 export {

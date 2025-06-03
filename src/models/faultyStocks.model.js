@@ -31,7 +31,6 @@ faultyAccountsSchema.pre("save", async function (next) {
     next();
 });
 
-
 const faultyAccounts = mongoose.model('faultyAccounts', faultyAccountsSchema);
 
 export {
